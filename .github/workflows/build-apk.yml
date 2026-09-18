@@ -1,5 +1,5 @@
 name: Build Sundarban Drug House APK
-updated
+
 on:
   workflow_dispatch:
   push:
@@ -16,7 +16,9 @@ jobs:
       - name: Extract APK project ZIP
         run: |
           mkdir -p apk-project
-          unzip -q ./*.zip -d apk-project
+          ZIP_FILE=$(find . -maxdepth 1 -type f -name '*.zip' | head -n 1)
+          echo "Using ZIP: $ZIP_FILE"
+          unzip -q "$ZIP_FILE" -d apk-project
           PROJECT_DIR=$(find apk-project -name settings.gradle -type f -printf '%h\n' | head -n 1)
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
@@ -35,6 +37,11 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
         run: gradle :app:assembleDebug --no-daemon
 
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: sundarban-drug-house-debug-apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
